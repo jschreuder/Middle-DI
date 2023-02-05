@@ -1,0 +1,28 @@
+{
+    "name": "jschreuder/middle-di",
+    "description": "A typehintable dependency injection container.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "jschreuder\\MiddleDi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jelmer Schreuder",
+            "email": "github@jelmerschreuder.nl"
+        }
+    ],
+    "minimum-stability": "stable",
+    "config": {
+        "bin-dir": "bin"
+    },
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^7.3",
+        "friends-of-phpspec/phpspec-code-coverage": "^6.2"
+    }
+}

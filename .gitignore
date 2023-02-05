@@ -1,0 +1,7 @@
+/.idea/
+/.vscode/
+/bin/
+/cache/
+/vendor/
+composer.lock
+coverage.xml

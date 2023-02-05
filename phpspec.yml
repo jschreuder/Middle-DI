@@ -1,0 +1,11 @@
+suites:
+    middle-di:
+        namespace: jschreuder\MiddleDi
+        psr4_prefix: jschreuder\MiddleDi
+
+extensions:
+    FriendsOfPhpSpec\PhpSpec\CodeCoverage\CodeCoverageExtension:
+        format:
+            - clover
+        output:
+            clover: coverage.xml
