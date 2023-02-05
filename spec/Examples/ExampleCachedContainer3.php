@@ -2,7 +2,7 @@
 
 namespace spec\jschreuder\MiddleDi\Examples;
 
-class ExampleCachedContainer
+class ExampleCachedContainer3
 {
     public function getService(): stdClass
     {
@@ -11,7 +11,7 @@ class ExampleCachedContainer
     }
 }
 
-class ExampleCachedContainer_Compiled extends ExampleCachedContainer
+class ExampleCachedContainer3_Compiled extends ExampleCachedContainer3
 {
     private array $__services = [];
 
