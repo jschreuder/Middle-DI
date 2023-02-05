@@ -44,7 +44,7 @@ interface.
             return new PDO();
         }
 
-        // A service using the database, will not regenerate after compilation
+        // A service using the database
         public function getService(): Service
         {
             return new Service($this->getDatabase());
