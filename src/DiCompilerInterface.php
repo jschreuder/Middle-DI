@@ -12,7 +12,7 @@ interface DiCompilerInterface
 
     public function processMethod(ReflectionMethod $method): string;
 
-    public function compile(): void;
+    public function compile(): static;
 
     public function newInstance(array ...$args): mixed;
 }

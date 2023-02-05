@@ -28,13 +28,15 @@ final class DiCompiler implements DiCompilerInterface
         return class_exists($this->getCompiledName());
     }
 
-    public function compile(): void
+    public function compile(): static
     {
         if ($this->compiledClassExists()) {
             throw new \RuntimeException('Cannot recompile already compiled container');
         }
 
         eval(substr($this->generateCode(), 32));
+
+        return $this;
     }
 
     public function generateCode(): string

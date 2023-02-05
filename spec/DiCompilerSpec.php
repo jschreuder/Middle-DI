@@ -55,7 +55,7 @@ class DiCompilerSpec extends ObjectBehavior
 
     public function it_can_compile()
     {
-        $this->compile();
+        $this->compile()->shouldBe($this);
         $this->compiledClassExists()->shouldBe(true);
     }
 
