@@ -10,11 +10,6 @@ class ExampleContainer
 {
     use ConfigTrait;
 
-    public function __construct(array | ArrayAccess $config)
-    {
-        $this->config = $config;
-    }
-
     public function newUser(string $username = null, string $password = null): stdClass
     {
         $user = new \stdClass();
