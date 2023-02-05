@@ -8,7 +8,7 @@ use stdClass;
 // Should error on having 2 parameters
 class ExampleFaultyContainer1
 {
-    public function getService(?string $name = 'the-second-param-is-not-allowed', array $settings): stdClass
+    public function getService(?string $name = 'the-second-param-is-not-allowed', array $settings = []): stdClass
     {
         $obj = new \stdClass();
         return $obj;
