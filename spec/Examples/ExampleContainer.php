@@ -10,7 +10,7 @@ class ExampleContainer
 {
     use ConfigTrait;
 
-    public function __construct(array|ArrayAccess $config)
+    public function __construct(array | ArrayAccess $config)
     {
         $this->config = $config;
     }
@@ -18,7 +18,7 @@ class ExampleContainer
     public function newUser(string $username = null, string $password = null): stdClass
     {
         $user = new \stdClass();
-        $user->username = $username ?: 'user_'.random_int(10000, 99999);
+        $user->username = $username ?: 'user_' . random_int(10000, 99999);
         $user->password = $password ?: $this->config('comically_bad_default_password');
         return $user;
     }

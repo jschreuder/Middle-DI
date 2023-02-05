@@ -18,7 +18,7 @@ final class DiCompiler implements DiCompilerInterface
 
     private function getCompiledName(): string
     {
-        return $this->parentDi.self::COMPILED_EXTENSION;
+        return $this->parentDi . self::COMPILED_EXTENSION;
     }
 
     public function compiledClassExists(): bool
@@ -48,18 +48,18 @@ final class DiCompiler implements DiCompilerInterface
         return
 '<?php
 
-namespace '.$parent->getNamespaceName().';
+namespace ' . $parent->getNamespaceName() . ';
 
-use '.$parent->getName().';
+use ' . $parent->getName() . ';
 
-class '.$parent->getShortName().self::COMPILED_EXTENSION.' extends '.$parent->getShortName().'
+class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $parent->getShortName() . '
 {
     private array $__services = [];
 
     private function __service(string $method, ?string $instanceName = null)
     {
-        $suffix = is_null($instanceName) ? \'\' : \'.\'.$instanceName;
-        return $this->__services[$method.$suffix] ?? ($this->__services[$method.$suffix] = parent::{$method}($instanceName));
+        $suffix = is_null($instanceName) ? \'\' : \'.\' . $instanceName;
+        return $this->__services[$method . $suffix] ?? ($this->__services[$method . $suffix] = parent::{$method}($instanceName));
     }
 
 ';
@@ -89,13 +89,13 @@ class '.$parent->getShortName().self::COMPILED_EXTENSION.' extends '.$parent->ge
 
             $returnType = $method->getReturnType();
             if (!in_array($returnType, ['mixed', 'string', 'int', 'bool', 'float', 'resource', 'void', 'null', 'array', 'object'])) {
-                $returnType = '\\'.$returnType;
+                $returnType = '\\' . $returnType;
             }
 
             $code .= '
     public function '.$method->getName().'(?string $instanceName = null): '.$returnType.'
     {
-        return $this->__service(\''.$method->getName().'\', $instanceName);
+        return $this->__service(\'' . $method->getName() . '\', $instanceName);
     }
 ';
         }
@@ -105,12 +105,12 @@ class '.$parent->getShortName().self::COMPILED_EXTENSION.' extends '.$parent->ge
 
     private function generateFooter(): string
     {
-        return PHP_EOL.'}'.PHP_EOL;
+        return PHP_EOL . '}' . PHP_EOL;
     }
 
     public function newInstance(array ...$args): mixed
     {
-        $instance = new ($this->getCompiledName())(...$args);
-        return $instance;
+        $reflectedClass = new ReflectionClass($this->getCompiledName());
+        return $reflectedClass->newInstance(...$args);
     }
 }

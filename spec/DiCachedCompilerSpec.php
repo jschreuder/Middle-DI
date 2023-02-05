@@ -11,7 +11,7 @@ use RuntimeException;
 class DiCachedCompilerSpec extends ObjectBehavior
 {
     private $parentDiCompiler;
-    private string $location = __DIR__.'/../cache/test.compiled_cached.php';
+    private string $location = __DIR__ . '/../cache/test.compiled_cached.php';
     private int $maxAge = 3;
 
     private string $compiledCodeExample = '<?php
@@ -22,8 +22,8 @@ class ExampleCompiledClass_{{SUFFIX}} extends stdClass
 
     private function __service(string $method, ?string $instanceName = null)
     {
-        $suffix = is_null($instanceName) ? \'\' : \'.\'.$instanceName;
-        return $this->__services[$method.$suffix] ?? ($this->__services[$method.$suffix] = parent::{$method}($instanceName));
+        $suffix = is_null($instanceName) ? \'\' : \'.\' . $instanceName;
+        return $this->__services[$method . $suffix] ?? ($this->__services[$method . $suffix] = parent::{$method}($instanceName));
     }
 }
 ';
