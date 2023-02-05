@@ -9,7 +9,7 @@ trait ConfigTrait
 {
     private array | ArrayAccess $config;
 
-    protected function config(string $valueName): mixed
+    public function config(string $valueName): mixed
     {
         if (!isset($this->config[$valueName])) {
             throw new OutOfBoundsException('No such config value: ' . $valueName);

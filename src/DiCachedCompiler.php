@@ -2,11 +2,15 @@
 
 namespace jschreuder\MiddleDi;
 
+use OutOfRangeException;
+use ReflectionMethod;
+use SplFileObject;
+
 final class DiCachedCompiler implements DiCompilerInterface
 {
     public function __construct(
         private DiCompilerInterface $compiler,
-        private string $location,
+        private SplFileObject $file,
         private int $maxAge = 0
     )
     {
@@ -27,18 +31,14 @@ final class DiCachedCompiler implements DiCompilerInterface
             $this->writeCacheFile($this->compiler->generateCode());
         }
 
-        include $this->location;
+        include_once $this->file->getPath();
         return;
     }
 
     private function writeCacheFile(string $code): void
     {
-        $file = fopen($this->location, 'w');
-        if ($file === false) {
-            throw new \RuntimeException('Could not write cachefile for compiled container.');
-        }
-        fwrite($file, $code);
-        fclose($file);
+        $this->file->ftruncate(0);
+        $this->file->fwrite($code);
     }
 
     public function generateCode(): string
@@ -46,15 +46,20 @@ final class DiCachedCompiler implements DiCompilerInterface
         return $this->compiler->generateCode();
     }
 
+    public function processMethod(ReflectionMethod $method): string
+    {
+        return $this->compiler->processMethod($method);
+    }
+
     private function validCache(): bool
     {
-        if (!file_exists($this->location)) {
+        if (!$this->file->isFile()) {
             return false;
         }
-        if ($this->maxAge === 0) {
-            return true;
+        if ($this->maxAge <= 0) {
+            throw new OutOfRangeException('Max age must be greater then zero.');
         }
-        return (time() - filemtime($this->location)) < $this->maxAge;
+        return (time() - $this->file->getMTime()) < $this->maxAge;
     }
 
     public function newInstance(array ...$args): mixed

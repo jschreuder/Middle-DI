@@ -9,6 +9,8 @@ use spec\jschreuder\MiddleDi\Examples\ExampleContainer;
 use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer1;
 use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer2;
 use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer3;
+use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer4;
+use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer5;
 
 include __DIR__.'/Examples/ExampleContainer.php';
 include __DIR__.'/Examples/ExampleFaultyContainer.php';
@@ -77,6 +79,18 @@ class DiCompilerSpec extends ObjectBehavior
     public function it_errors_on_faulty_service_definitions_during_compilation_3()
     {
         $this->beConstructedWith(ExampleFaultyContainer3::class);
+        $this->shouldThrow(RuntimeException::class)->duringCompile();
+    }
+
+    public function it_errors_on_faulty_service_definitions_during_compilation_4()
+    {
+        $this->beConstructedWith(ExampleFaultyContainer4::class);
+        $this->shouldThrow(RuntimeException::class)->duringCompile();
+    }
+
+    public function it_errors_on_faulty_service_definitions_during_compilation_5()
+    {
+        $this->beConstructedWith(ExampleFaultyContainer5::class);
         $this->shouldThrow(RuntimeException::class)->duringCompile();
     }
 

@@ -3,7 +3,9 @@
 namespace jschreuder\MiddleDi;
 
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionNamedType;
+use RuntimeException;
 
 final class DiCompiler implements DiCompilerInterface
 {
@@ -32,21 +34,26 @@ final class DiCompiler implements DiCompilerInterface
             throw new \RuntimeException('Cannot recompile already compiled container');
         }
 
-        eval(substr($this->generateCode(), 6));
+        eval(substr($this->generateCode(), 32));
     }
 
     public function generateCode(): string
     {
         $parent = new ReflectionClass($this->parentDi);
-        return $this->generateHeader($parent)
-            .$this->generateMethods($parent)
-            .$this->generateFooter();
+
+        $code = $this->generateHeader($parent);
+
+        $methods = $parent->getMethods();
+        foreach ($methods as $method) {
+            $code .= $this->processMethod($method);
+        }
+        return $code . $this->generateFooter();
     }
 
     private function generateHeader(ReflectionClass $parent)
     {
         return
-'<?php
+'<?php declare(strict_types=1);
 
 namespace ' . $parent->getNamespaceName() . ';
 
@@ -65,42 +72,54 @@ class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $pa
 ';
     }
 
-    private function generateMethods(ReflectionClass $parent)
+    public function processMethod(ReflectionMethod $method): string
     {
-        $code = '';
+        // Decide if the method needs to be overloaded
+        if (substr($method->getName(), 0, 3) !== 'get') {
+            return '';
+        }
 
-        foreach ($parent->getMethods() as $method) {
-            if ($method->isPublic() && (substr($method->getName(), 0, 3) !== 'get')) {
-                continue;
-            }
-            if (!$method->hasReturnType()) {
-                throw new \RuntimeException('Service definitions must have return types');
-            }
-            if ($method->getNumberOfParameters() > 1) {
-                throw new \RuntimeException('Service definitions cannot take more than a name parameter');
-            }
-            if ($method->getNumberOfParameters() === 1) {
-                $parameter = $method->getParameters()[0];
+        // Run validations
+        $this->validateServiceDefinitionReturnType($method);
+        $this->validateServiceDefinitionParameters($method);
 
-                if (!is_a($parameter->getType(), ReflectionNamedType::class) || $parameter->getType()->getName() !== 'string') {
-                    throw new \RuntimeException('Service factories are only allowed a single named nullable string argument.');
-                }
-            }
-
-            $returnType = $method->getReturnType();
-            if (!in_array($returnType, ['mixed', 'string', 'int', 'bool', 'float', 'resource', 'void', 'null', 'array', 'object'])) {
-                $returnType = '\\' . $returnType;
-            }
-
-            $code .= '
-    public function '.$method->getName().'(?string $instanceName = null): '.$returnType.'
+        // Generate method-overload code
+        return '
+    public function ' . $method->getName() . '(?string $instanceName = null): \\' . $method->getReturnType()->getName() . '
     {
         return $this->__service(\'' . $method->getName() . '\', $instanceName);
     }
 ';
+    }
+
+    private function validateServiceDefinitionReturnType(ReflectionMethod $method): void
+    {
+        // It must have a return type, and the return type must only define a single class or interface
+        if (!$method->hasReturnType()) {
+            throw new RuntimeException('Service definitions must have return types');
         }
 
-        return $code;
+        $returnType = $method->getReturnType();
+        if (!$returnType instanceof ReflectionNamedType) {
+            throw new RuntimeException('Service definitions must define only a single class or interface returntype');
+        }
+        if ($returnType->isBuiltin()) {
+            throw new RuntimeException('Service definitions must return objects');
+        }
+    }
+
+    private function validateServiceDefinitionParameters(ReflectionMethod $method): void
+    {
+        if ($method->getNumberOfParameters() > 1) {
+            throw new RuntimeException('Service definitions cannot take more than a name parameter');
+        }
+        if ($method->getNumberOfParameters() === 1) {
+            $parameter = $method->getParameters()[0];
+
+            if (!is_a($parameter->getType(), ReflectionNamedType::class) || $parameter->getType()->getName() !== 'string') {
+                throw new \RuntimeException('Service definitions are only allowed a single named nullable string argument.');
+            }
+        }
     }
 
     private function generateFooter(): string

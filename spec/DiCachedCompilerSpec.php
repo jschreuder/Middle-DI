@@ -5,16 +5,17 @@ namespace spec\jschreuder\MiddleDi;
 use PhpSpec\ObjectBehavior;
 use jschreuder\MiddleDi\DiCachedCompiler;
 use jschreuder\MiddleDi\DiCompilerInterface;
+use SplFileObject;
 use stdClass;
 use RuntimeException;
 
 class DiCachedCompilerSpec extends ObjectBehavior
 {
     private $parentDiCompiler;
-    private string $location = __DIR__ . '/../cache/test.compiled_cached.php';
-    private int $maxAge = 3;
+    private $file;
+    private int $maxAge = 300;
 
-    private string $compiledCodeExample = '<?php
+    private string $compiledCodeExample = '<?php declare(strict_types=1);
 
 class ExampleCompiledClass_{{SUFFIX}} extends stdClass
 {
@@ -28,13 +29,11 @@ class ExampleCompiledClass_{{SUFFIX}} extends stdClass
 }
 ';
 
-    public function let(DiCompilerInterface $parentDiCompiler)
+    public function let(DiCompilerInterface $parentDiCompiler, SplFileObject $file)
     {
-        if (file_exists($this->location)) {
-            unlink($this->location);
-        }
         $this->parentDiCompiler = $parentDiCompiler;
-        $this->beConstructedWith($this->parentDiCompiler, $this->location, $this->maxAge);
+        $this->file = $file;
+        $this->beConstructedWith($this->parentDiCompiler, $this->file, $this->maxAge);
     }
 
     function it_is_initializable()
@@ -48,12 +47,55 @@ class ExampleCompiledClass_{{SUFFIX}} extends stdClass
         $this->compiledClassExists()->shouldBe(false);
     }
 
-    public function it_can_compile()
+    public function it_can_compile_without_cache()
     {
+        $preCompiledFile = __DIR__ . '/Examples/ExampleCachedContainer.php';
+        $code = file_get_contents($preCompiledFile);
+        $this->file->isFile()->willReturn(false);
+        $this->file->ftruncate(0)->shouldBeCalled();
+        $this->file->fwrite($code)->shouldBeCalled();
+        $this->file->getPath()->willReturn($preCompiledFile);
+
         $this->parentDiCompiler->compiledClassExists()->willReturn(false);
-        $this->parentDiCompiler->generateCode()->willReturn(str_replace('{{SUFFIX}}', '_itcancompile', $this->compiledCodeExample));
+        $this->parentDiCompiler->generateCode()->willReturn($code);
+
         $this->compile();
-        $this->parentDiCompiler->compiledClassExists()->willReturn(class_exists('ExampleCompiledClass__itcancompile'));
+        $this->parentDiCompiler->compiledClassExists()->willReturn(class_exists('spec\\jschreuder\\MiddleDi\\Examples\\ExampleCachedContainer_Compiled'));
+        $this->compiledClassExists()->shouldBe(true);
+    }
+
+    public function it_can_compile_with_expired_cache()
+    {
+        $preCompiledFile = __DIR__ . '/Examples/ExampleCachedContainer.php';
+        $code = file_get_contents($preCompiledFile);
+        $this->file->isFile()->willReturn(true);
+        $this->file->getMTime()->willReturn(time()-3000);
+        $this->file->ftruncate(0)->shouldBeCalled();
+        $this->file->fwrite($code)->shouldBeCalled();
+        $this->file->getPath()->willReturn($preCompiledFile);
+
+        $this->parentDiCompiler->compiledClassExists()->willReturn(false);
+        $this->parentDiCompiler->generateCode()->willReturn($code);
+
+        // It will attempt include again, but due to using include_once it won't error
+        $this->compile();
+        $this->parentDiCompiler->compiledClassExists()->willReturn(class_exists('spec\\jschreuder\\MiddleDi\\Examples\\ExampleCachedContainer_Compiled'));
+        $this->compiledClassExists()->shouldBe(true);
+    }
+
+    public function it_can_compile_with_cache()
+    {
+        $preCompiledFile = __DIR__ . '/Examples/ExampleCachedContainer.php';
+        $this->file->isFile()->willReturn(true);
+        $this->file->ftruncate(0)->shouldNotBeCalled();
+        $this->file->getPath()->willReturn($preCompiledFile);
+        $this->file->getMTime()->willReturn(time()-30);
+
+        $this->parentDiCompiler->compiledClassExists()->willReturn(false);
+
+        // It will attempt include again, but due to using include_once it won't error
+        $this->compile();
+        $this->parentDiCompiler->compiledClassExists()->willReturn(class_exists('spec\\jschreuder\\MiddleDi\\Examples\\ExampleCachedContainer_Compiled'));
         $this->compiledClassExists()->shouldBe(true);
     }
 
