@@ -2,6 +2,7 @@
 
 namespace spec\jschreuder\MiddleDi;
 
+use ExampleContainerNoNamespace;
 use PhpSpec\ObjectBehavior;
 use jschreuder\MiddleDi\DiCompiler;
 use RuntimeException;
@@ -13,6 +14,7 @@ use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer4;
 use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer5;
 
 include __DIR__.'/Examples/ExampleContainer.php';
+include __DIR__.'/Examples/ExampleContainerNoNamespace.php';
 include __DIR__.'/Examples/ExampleFaultyContainer.php';
 
 class DiCompilerSpec extends ObjectBehavior
@@ -97,6 +99,12 @@ class DiCompilerSpec extends ObjectBehavior
     public function it_can_instantiate_container()
     {
         $this->newInstance($this->config)->shouldBeAnInstanceOf(ExampleContainer::class);
+    }
+
+    public function it_can_instantiate_container_with_no_namespace()
+    {
+        $this->beConstructedWith(ExampleContainerNoNamespace::class);
+        $this->compile()->newInstance($this->config)->shouldBeAnInstanceOf(ExampleContainerNoNamespace::class);
     }
 
     public function it_will_create_different_instances()
