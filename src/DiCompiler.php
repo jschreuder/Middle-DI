@@ -34,7 +34,7 @@ final class DiCompiler implements DiCompilerInterface
             throw new \RuntimeException('Cannot recompile already compiled container');
         }
 
-        eval(substr($this->generateCode(), 32));
+        eval(substr($this->generateCode(), 31));
 
         return $this;
     }
@@ -54,13 +54,17 @@ final class DiCompiler implements DiCompilerInterface
 
     private function generateHeader(ReflectionClass $parent)
     {
-        return
-'<?php declare(strict_types=1);
+        $code = '<?php declare(strict_types=1);
+';
 
-namespace ' . $parent->getNamespaceName() . ';
+        if ($parent->getNamespaceName()) {
+            $code .= 'namespace ' . $parent->getNamespaceName() . ';
 
 use ' . $parent->getName() . ';
+';
+        }
 
+        $code .= '
 class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $parent->getShortName() . '
 {
     private array $__services = [];
@@ -72,6 +76,8 @@ class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $pa
     }
 
 ';
+
+        return $code;
     }
 
     public function processMethod(ReflectionMethod $method): string
