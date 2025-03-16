@@ -28,4 +28,4 @@ class ExampleContainerNoNamespace
         $obj->name = $named ?? 'default';
         return $obj;
     }
-}
+} 

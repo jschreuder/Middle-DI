@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace spec\jschreuder\MiddleDi\Examples;
+namespace Tests\Examples;
 
 use ArrayObject;
 use stdClass;
@@ -52,4 +52,4 @@ class ExampleFaultyContainer5
     {
         return 'disallowed';
     }
-}
+} 

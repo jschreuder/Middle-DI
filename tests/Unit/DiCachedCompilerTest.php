@@ -9,7 +9,7 @@ use SplFileObject;
 
 $compiledCodeExample = '<?php declare(strict_types=1);
 
-namespace spec\jschreuder\MiddleDi\Examples;
+namespace Tests\Examples;
 
 class ExampleCompiledClass_{{SUFFIX}} extends \stdClass
 {
@@ -51,7 +51,7 @@ test('it can check compilation status', function () {
 });
 
 test('it can compile without cache', function () {
-    $preCompiledFile = __DIR__ . '/../../spec/Examples/ExampleCachedContainer1.php';
+    $preCompiledFile = __DIR__ . '/../Examples/Cached/ExampleCachedContainer1.php';
     $code = @file_get_contents($preCompiledFile) ?: $this->compiledCodeExample;
     
     $this->file->shouldReceive('isFile')->once()->andReturn(false);
@@ -71,7 +71,7 @@ test('it can compile without cache', function () {
 });
 
 test('it can compile with expired cache', function () {
-    $preCompiledFile = __DIR__ . '/../../spec/Examples/ExampleCachedContainer2.php';
+    $preCompiledFile = __DIR__ . '/../Examples/Cached/ExampleCachedContainer2.php';
     $code = @file_get_contents($preCompiledFile) ?: $this->compiledCodeExample;
     
     $this->file->shouldReceive('isFile')->once()->andReturn(true);
@@ -92,7 +92,7 @@ test('it can compile with expired cache', function () {
 });
 
 test('it can compile with cache', function () {
-    $preCompiledFile = __DIR__ . '/../../spec/Examples/ExampleCachedContainer3.php';
+    $preCompiledFile = __DIR__ . '/../Examples/Cached/ExampleCachedContainer3.php';
     
     $this->file->shouldReceive('isFile')->once()->andReturn(true);
     $this->file->shouldReceive('ftruncate')->never();
@@ -110,7 +110,7 @@ test('it can compile with cache', function () {
 });
 
 test('it can compile with unexpireable cache', function () {
-    $preCompiledFile = __DIR__ . '/../../spec/Examples/ExampleCachedContainer4.php';
+    $preCompiledFile = __DIR__ . '/../Examples/Cached/ExampleCachedContainer4.php';
     $file = \Mockery::mock(SplFileObject::class, [$preCompiledFile])->makePartial();
     $file->shouldReceive('isFile')->once()->andReturn(true);
     $file->shouldReceive('ftruncate')->never();

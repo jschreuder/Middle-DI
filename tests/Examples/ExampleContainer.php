@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace spec\jschreuder\MiddleDi\Examples;
+namespace Tests\Examples;
 
 use ArrayAccess;
 use jschreuder\MiddleDi\ConfigTrait;
@@ -32,4 +32,4 @@ class ExampleContainer
         $obj->name = $named ?? 'default';
         return $obj;
     }
-}
+} 

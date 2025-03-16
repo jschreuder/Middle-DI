@@ -4,43 +4,32 @@ namespace Tests\Unit;
 
 use jschreuder\MiddleDi\DiCompiler;
 use jschreuder\MiddleDi\DiCachedCompiler;
-use spec\jschreuder\MiddleDi\Examples\ExampleContainer;
-use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer1;
-use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer2;
-use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer3;
-use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer4;
-use spec\jschreuder\MiddleDi\Examples\ExampleFaultyContainer5;
+use Tests\Examples\ExampleContainer;
+use Tests\Examples\ExampleFaultyContainer1;
+use Tests\Examples\ExampleFaultyContainer2;
+use Tests\Examples\ExampleFaultyContainer3;
+use Tests\Examples\ExampleFaultyContainer4;
+use Tests\Examples\ExampleFaultyContainer5;
 use SplFileObject;
 
-include __DIR__.'/../../spec/Examples/ExampleContainer.php';
-include __DIR__.'/../../spec/Examples/ExampleContainerNoNamespace.php';
-include __DIR__.'/../../spec/Examples/ExampleFaultyContainer.php';
+include __DIR__.'/../Examples/ExampleContainer.php';
+include __DIR__.'/../Examples/ExampleContainerNoNamespace.php';
+include __DIR__.'/../Examples/ExampleFaultyContainer.php';
 
 $config = ['sitename' => 'My Own Website', 'comically_bad_default_password' => 'p@$$w0rd'];
-
-// Keep track of created classes to clean up
-$GLOBALS['created_classes'] = [];
 
 beforeEach(function () use ($config) {
     $this->config = $config;
     // Create a unique container class for each test run
     $uniqueClass = 'Container_' . uniqid();
     $this->uniqueClass = $uniqueClass;
-    $fullClassName = 'spec\\jschreuder\\MiddleDi\\Examples\\' . $uniqueClass;
-    
-    // Store for cleanup
-    $GLOBALS['created_classes'][] = $fullClassName;
+    $fullClassName = 'Tests\\Examples\\' . $uniqueClass;
     
     // Create the class
-    eval('namespace spec\\jschreuder\\MiddleDi\\Examples; class ' . $uniqueClass . ' extends ExampleContainer {}');
+    eval('namespace Tests\\Examples; class ' . $uniqueClass . ' extends ExampleContainer {}');
     $this->compiler = new DiCompiler($fullClassName);
 });
 
-afterEach(function () {
-    // Nothing to do - PHP will handle class cleanup between requests
-    // We're just tracking created classes for documentation
-    $GLOBALS['created_classes'] = [];
-});
 
 test('it is initializable', function () {
     expect($this->compiler)->toBeInstanceOf(DiCompiler::class);
@@ -67,10 +56,9 @@ test('it cant compile twice', function () {
 test('it errors on faulty service definitions during compilation', function ($containerClass) {
     // Create a unique faulty container class
     $uniqueClass = 'Faulty_' . uniqid();
-    $fullClassName = 'spec\\jschreuder\\MiddleDi\\Examples\\' . $uniqueClass;
-    $GLOBALS['created_classes'][] = $fullClassName;
+    $fullClassName = 'Tests\\Examples\\' . $uniqueClass;
     
-    eval('namespace spec\\jschreuder\\MiddleDi\\Examples; class ' . $uniqueClass . ' extends ' . basename(str_replace('\\', '/', $containerClass)) . ' {}');
+    eval('namespace Tests\\Examples; class ' . $uniqueClass . ' extends ' . basename(str_replace('\\', '/', $containerClass)) . ' {}');
     $this->compiler = new DiCompiler($fullClassName);
     expect(fn() => $this->compiler->compile())->toThrow(\RuntimeException::class);
 })->with([
@@ -89,7 +77,6 @@ test('it can instantiate container', function () {
 test('it can instantiate container with no namespace', function () {
     // Create a unique no-namespace container class
     $uniqueClass = 'NoNs_' . uniqid();
-    $GLOBALS['created_classes'][] = $uniqueClass;
     
     eval('class ' . $uniqueClass . ' extends \\ExampleContainerNoNamespace {}');
     $this->compiler = new DiCompiler($uniqueClass);
