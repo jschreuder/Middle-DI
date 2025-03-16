@@ -8,6 +8,11 @@
             "jschreuder\\MiddleDi\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Jelmer Schreuder",
@@ -15,14 +20,19 @@
         }
     ],
     "minimum-stability": "stable",
-    "config": {
-        "bin-dir": "bin"
-    },
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.3"
     },
     "require-dev": {
-        "phpspec/phpspec": "^7.3",
-        "friends-of-phpspec/phpspec-code-coverage": "^6.2"
+        "pestphp/pest": "^2.0",
+        "mockery/mockery": "^1.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "test": "pest"
     }
 }
