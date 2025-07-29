@@ -51,8 +51,8 @@ class Container
 }
 ```
 
-**Generated for Production (cached, opcache-optimized):**
-Note: this is a bit simplified, it actually adds a tiny bit of extra logic to allow for named instances.
+**Generated for Production (cached, opcache-optimized):**  
+*Note: this is a bit simplified, it actually adds a tiny bit of extra logic to allow for named instances.*
 ```php
 class Container__Compiled extends Container
 {
