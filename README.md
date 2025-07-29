@@ -4,111 +4,216 @@
 [![Code Coverage](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/badges/build.png?b=master)](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/?branch=master)
 
-A PHP Dependency Injection Container library meant to allow service and factory definitions in native PHP as to allow type-hinting, automated checks and code completion. It does this by rewriting a class on-the-fly and ensuring that service definitions will always return the same instance.
+A modern PHP Dependency Injection Container that brings **IDE autocompletion, type safety, and zero-configuration** to dependency injection. Unlike traditional containers that use string-based service keys, Middle-DI generates strongly-typed methods during development, then caches optimized code for zero-overhead production performance.
 
-It aside from the core functionality it also allows for caching the generated code in the filesystem, thus allowing OP-cache to do its work in production. And it als includes a bit of logic for configuration to be passed in.
+## Why Middle DI?
 
-## Conventions
-
-All service definitions should be public methods starting with "get", and all factories should start with "new". Currently only the service defintions are enforced, additional rules include: it may only take a string name (see below) as parameter and must have a singular returntype that is either a class or an interface.
-
+**Traditional containers:**
 ```php
-<?php
-use jschreuder\MiddleDi\DiCompiler;
-
-class Container
-{
-    // This will be rewritten to always return the same object
-    public function getDatabase(): PDO
-    {
-        return new PDO();
-    }
-
-    // A service using the database
-    public function getService(): Service
-    {
-        return new Service($this->getDatabase());
-    }
-
-    // This will be left alone and work as defined
-    public function newObject(): stdClass
-    {
-        return new stdClass();
-    }
-}
-
-// Create the compiled container
-$dic = (new DiCompiler(Container::class))->compile()->newInstance();
-
-// these will all be true
-var_dump(
-    $dic instanceof Container,
-    $dic->getDatabase() === $dic->getDatabase(),
-    $dic->getService() === $dic->getService(),
-    $dic->newObject() !== $dic->newObject()
-);
+$database = $container->get('database');        // What type? Runtime errors possible
+$userService = $container->get('user.service'); // No IDE support, typos discovered late
 ```
 
-## Using different named instances of a service
-
-Even though services are expected to be single instances, using multiple instances of a service is allowed when naming them. A first parameter is supported which will be treated as its name and can be used to differentiate in its configuration.
-
+**Middle-DI:**
 ```php
-<?php
-class Container
-{
-    public function getDatabase(): PDO
-    {
-        return new PDO();
-    }
-
-    // This will return different instances for different names
-    public function getTableService(string $name): TableService
-    {
-        return new TableService($name, $this->getDatabase());
-    }
-}
+$database = $container->getDatabase();     // Returns PDO, full IDE support
+$userService = $container->getUserService(); // Returns UserService, compile-time safe
 ```
 
-## Make containers cached in filesystem in production
+## How It Works
 
-To allow op-caching to work and make things as fast as possible in production environment the compiled container can be cached to a file.
+Middle-DI uses **compile-time code generation during development** to transform your simple container definition into an optimized singleton container. 
 
+**Simple Conventions:**
+- **Services**: `get*()` methods return singletons, accept optional `string $name` parameter only
+- **Factories**: `new*()` methods create fresh instances, accept any parameters
+
+**Your Definition:**
 ```php
-<?php
-use jschreuder\MiddleDi\DiCompiler;
-use jschreuder\MiddleDi\DiCachedCompiler;
-
-class Container {}
-
-// Create the compiled container
-$compiler = (new DiCachedCompiler(
-    new DiCompiler(Container::class),
-    new SplFileObject('path/to/cachefile.php', 'c');
-))->compile();
-$dic = $compiler->newInstance();
-```
-
-## Add configuration
-
-There's a simple configuration helper included with the `ConfigTrait`. This adds a constructor that takes either an array or an ArrayAccess instance and allows requesting configuration items using the config() method. It will throw an exception when a non-existant configuration item is requested.
-
-```php
-<?php
-use jschreuder\MiddleDi\DiCompiler;
-
 class Container
 {
-    use jschreuder\MiddleDi\ConfigTrait;
-
-    // This will be rewritten to always return the same object
+    // Services: singletons
     public function getDatabase(): PDO
     {
         return new PDO($this->config('db.dsn'));
     }
+
+    public function getUserService(): UserService  
+    {
+        return new UserService($this->getDatabase());
+    }
+
+    // Factories: fresh instances
+    public function newUser(string $username, array $roles = []): User
+    {
+        return new User($username, $roles);
+    }
+}
+```
+
+**Generated for Production (cached, opcache-optimized):**
+```php
+class Container__Compiled extends Container
+{
+    private array $__services = [];
+
+    public function getDatabase(): PDO
+    {
+        return $this->__services['getDatabase'] ?? 
+               ($this->__services['getDatabase'] = parent::getDatabase());
+    }
+
+    public function getUserService(): UserService
+    {
+        return $this->__services['getUserService'] ?? 
+               ($this->__services['getUserService'] = parent::getUserService());
+    }
+
+    // newUser() remains unchanged - creates new instances
+}
+```
+
+## Basic Usage
+
+```php
+<?php
+use jschreuder\MiddleDi\DiCompiler;
+
+class Container
+{
+    public function getDatabase(): PDO
+    {
+        return new PDO('mysql:host=localhost;dbname=app');
+    }
+
+    public function getUserRepository(): UserRepositoryInterface
+    {
+        return new UserRepository($this->getDatabase());
+    }
+
+    public function newUser(string $username): User
+    {
+        return new User($username);
+    }
 }
 
-// Create the compiled container
-$config = ['dsn' => 'example:dsn'];
-$dic = (new DiCompiler(Container::class))->compile()->newInstance($config);
-``` 
+// Compile and use
+$container = (new DiCompiler(Container::class))->compile()->newInstance();
+
+// Services: same instances (singletons)
+$db1 = $container->getDatabase();
+$db2 = $container->getDatabase();
+var_dump($db1 === $db2); // true
+
+// Factories: different instances every time
+$user1 = $container->newUser('alice');
+$user2 = $container->newUser('bob');
+var_dump($user1 === $user2); // false
+```
+
+## Named Service Instances
+
+Support multiple configurations of the same service type:
+
+```php
+class Container
+{
+    public function getDatabase(?string $name = null): PDO
+    {
+        $dsn = match($name) {
+            'readonly' => 'mysql:host=slave;dbname=app',
+            'analytics' => 'mysql:host=analytics;dbname=app',  
+            default => 'mysql:host=master;dbname=app'
+        };
+        return new PDO($dsn);
+    }
+}
+
+// Usage
+$primary = $container->getDatabase();           // Default primary DB
+$readonly = $container->getDatabase('readonly'); // Readonly replica
+$analytics = $container->getDatabase('analytics'); // Analytics DB
+```
+
+## Production Optimization
+
+Cache compiled containers for maximum performance:
+
+```php
+use jschreuder\MiddleDi\DiCachedCompiler;
+
+$compiler = new DiCachedCompiler(
+    new DiCompiler(Container::class),
+    new SplFileObject('var/cache/container.php', 'c+')
+);
+
+$container = $compiler->compile()->newInstance($config);
+```
+
+In production, this runs as pure opcached PHP with zero container overhead.
+
+## Configuration Support
+
+Use the included `ConfigTrait` for clean configuration handling:
+
+```php
+use jschreuder\MiddleDi\ConfigTrait;
+
+class Container
+{
+    use ConfigTrait;
+
+    public function getDatabase(): PDO
+    {
+        return new PDO(
+            $this->config('db.dsn'),
+            $this->config('db.username'),
+            $this->config('db.password')
+        );
+    }
+}
+
+$config = [
+    'db.dsn' => 'mysql:host=localhost;dbname=app',
+    'db.username' => 'user',
+    'db.password' => 'pass'
+];
+
+$container = $compiler->compile()->newInstance($config);
+```
+
+## Key Features
+
+### 🚀 **Zero Configuration**
+No YAML, XML, or array configuration. Just write PHP methods with clear return types. The `get` vs `new` prefix tells Middle-DI everything it needs to know.
+
+### 💡 **Full IDE Support**
+Complete autocompletion, type hints, and "Go to Definition" support. Refactoring tools work perfectly. No more guessing what `$container->get('service_name')` returns.
+
+### ⚡ **Zero Production Overhead**  
+Development-time compilation generates cached PHP files. Production runs pure opcached code that compiles to native PHP speed with full opcache optimization.
+
+### 🔒 **Type Safety**
+All dependencies are strongly typed. Catch errors during development, not in production.
+
+### 🎯 **Pure Dependency Injection**
+Services remain completely decoupled from the container. No annotations, no string dependencies, no special interfaces—just regular PHP classes.
+
+## Extensibility Features
+
+Add advanced functionality using the decorator pattern:
+
+```php
+$compiler = new CircularDependencyCompiler(
+    new DiCachedCompiler(
+        new DiCompiler(Container::class),
+        new SplFileObject('var/cache/container.php', 'c+')
+    )
+);
+```
+
+## Requirements
+
+- PHP 8.3 or higher
+
+Perfect for projects wanting Pimple's simplicity with modern IDE support and optimal production performance.
