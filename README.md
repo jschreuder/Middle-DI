@@ -51,23 +51,26 @@ class Container
 }
 ```
 
-**Generated for Production (cached, opcache-optimized):**  
-*Note: this is a bit simplified, it actually adds a tiny bit of extra logic to allow for named instances.*
+**Generated for Production (cached, opcache-optimized):**
 ```php
 class Container__Compiled extends Container
 {
     private array $__services = [];
 
-    public function getDatabase(): PDO
+    private function __service(string $method, ?string $instanceName = null)
     {
-        return $this->__services['getDatabase'] ?? 
-               ($this->__services['getDatabase'] = parent::getDatabase());
+        $suffix = is_null($instanceName) ? '' : '.' . $instanceName;
+        return $this->__services[$method . $suffix] ?? ($this->__services[$method . $suffix] = parent::{$method}($instanceName));
     }
 
-    public function getUserService(): UserService
+    public function getDatabase(?string $instanceName = null): PDO
     {
-        return $this->__services['getUserService'] ?? 
-               ($this->__services['getUserService'] = parent::getUserService());
+        return $this->__service('getDatabase', $instanceName);
+    }
+
+    public function getUserService(?string $instanceName = null): UserService
+    {
+        return $this->__service('getUserService', $instanceName);
     }
 
     // newUser() remains unchanged - creates new instances
@@ -212,6 +215,8 @@ $compiler = new CircularDependencyCompiler(
     )
 );
 ```
+
+This is how the `DiCachedCompiler` was implemented, which is currently the only included decorator.
 
 ## Requirements
 
