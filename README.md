@@ -8,17 +8,19 @@ A modern PHP Dependency Injection Container that brings **IDE autocompletion, ty
 
 ## Why Middle DI?
 
-**Traditional containers:**
+**The issue with traditional containers:**
 ```php
 $database = $container->get('database');        // What type? Runtime errors possible
 $userService = $container->get('user.service'); // No IDE support, typos discovered late
 ```
 
-**Middle-DI:**
+**The Middle-DI solution:**
 ```php
 $database = $container->getDatabase();     // Returns PDO, full IDE support
 $userService = $container->getUserService(); // Returns UserService, compile-time safe
 ```
+
+Similar to Pimple's simplicity but with modern type safety and zero runtime overhead.
 
 ## How It Works
 
@@ -154,7 +156,7 @@ $compiler = new DiCachedCompiler(
 $container = $compiler->compile()->newInstance($config);
 ```
 
-In production, this runs as pure opcached PHP with zero container overhead.
+In production, this runs as pure opcached PHP with zero container overhead. The generated code has no dependency on Middle-DI itself - it is just pure PHP.
 
 ## Configuration Support
 
