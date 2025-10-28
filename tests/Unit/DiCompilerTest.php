@@ -3,18 +3,17 @@
 namespace Tests\Unit;
 
 use jschreuder\MiddleDi\DiCompiler;
-use jschreuder\MiddleDi\DiCachedCompiler;
+use jschreuder\MiddleDi\DiCompilationException;
 use Tests\Examples\ExampleContainer;
 use Tests\Examples\ExampleFaultyContainer1;
 use Tests\Examples\ExampleFaultyContainer2;
 use Tests\Examples\ExampleFaultyContainer3;
 use Tests\Examples\ExampleFaultyContainer4;
 use Tests\Examples\ExampleFaultyContainer5;
-use SplFileObject;
 
-include __DIR__.'/../Examples/ExampleContainer.php';
-include __DIR__.'/../Examples/ExampleContainerNoNamespace.php';
-include __DIR__.'/../Examples/ExampleFaultyContainer.php';
+include_once __DIR__.'/../Examples/ExampleContainer.php';
+include_once __DIR__.'/../Examples/ExampleContainerNoNamespace.php';
+include_once __DIR__.'/../Examples/ExampleFaultyContainer.php';
 
 $config = ['sitename' => 'My Own Website', 'comically_bad_default_password' => 'p@$$w0rd'];
 
@@ -24,7 +23,7 @@ beforeEach(function () use ($config) {
     $uniqueClass = 'Container_' . uniqid();
     $this->uniqueClass = $uniqueClass;
     $fullClassName = 'Tests\\Examples\\' . $uniqueClass;
-    
+
     // Create the class
     eval('namespace Tests\\Examples; class ' . $uniqueClass . ' extends ExampleContainer {}');
     $this->compiler = new DiCompiler($fullClassName);
@@ -50,17 +49,17 @@ test('it can compile', function () {
 
 test('it cant compile twice', function () {
     $this->compiler->compile();
-    expect(fn() => $this->compiler->compile())->toThrow(\RuntimeException::class);
+    expect(fn() => $this->compiler->compile())->toThrow(DiCompilationException::class);
 });
 
 test('it errors on faulty service definitions during compilation', function ($containerClass) {
     // Create a unique faulty container class
     $uniqueClass = 'Faulty_' . uniqid();
     $fullClassName = 'Tests\\Examples\\' . $uniqueClass;
-    
+
     eval('namespace Tests\\Examples; class ' . $uniqueClass . ' extends ' . basename(str_replace('\\', '/', $containerClass)) . ' {}');
     $this->compiler = new DiCompiler($fullClassName);
-    expect(fn() => $this->compiler->compile())->toThrow(\RuntimeException::class);
+    expect(fn() => $this->compiler->compile())->toThrow(DiCompilationException::class);
 })->with([
     ExampleFaultyContainer1::class,
     ExampleFaultyContainer2::class,
@@ -77,7 +76,7 @@ test('it can instantiate container', function () {
 test('it can instantiate container with no namespace', function () {
     // Create a unique no-namespace container class
     $uniqueClass = 'NoNs_' . uniqid();
-    
+
     eval('class ' . $uniqueClass . ' extends \\ExampleContainerNoNamespace {}');
     $this->compiler = new DiCompiler($uniqueClass);
     $this->compiler->compile();
@@ -94,7 +93,7 @@ test('it will create different instances', function () {
 test('instance will treat services as services', function () {
     $this->compiler->compile();
     $instance = $this->compiler->newInstance($this->config);
-    
+
     $service1 = $instance->getService();
     $service2 = $instance->getService();
     expect($service1)->toBe($service2);
@@ -107,7 +106,7 @@ test('instance will treat services as services', function () {
 test('instance supports named services', function () {
     $this->compiler->compile();
     $instance = $this->compiler->newInstance($this->config);
-    
+
     $secondServiceDefault = $instance->getSecondService();
     $secondServiceNamed = $instance->getSecondService('whoop');
     expect($secondServiceDefault)->not->toBe($secondServiceNamed);
@@ -117,7 +116,7 @@ test('instance with config trait supports config values', function () {
     $this->compiler->compile();
     $instance = $this->compiler->newInstance($this->config);
     $user = $instance->newUser('something');
-    
+
     expect($user->username)->toBe('something');
     expect($user->password)->toBe($instance->config('comically_bad_default_password'));
 });
@@ -125,8 +124,8 @@ test('instance with config trait supports config values', function () {
 test('instance will treat factories as factories', function () {
     $this->compiler->compile();
     $instance = $this->compiler->newInstance($this->config);
-    
+
     $user1 = $instance->newUser();
     $user2 = $instance->newUser();
     expect($user1)->not->toBe($user2);
-}); 
+});

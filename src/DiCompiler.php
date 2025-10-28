@@ -5,7 +5,6 @@ namespace jschreuder\MiddleDi;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use RuntimeException;
 
 final class DiCompiler implements DiCompilerInterface
 {
@@ -31,7 +30,7 @@ final class DiCompiler implements DiCompilerInterface
     public function compile(): static
     {
         if ($this->compiledClassExists()) {
-            throw new \RuntimeException('Cannot recompile already compiled container');
+            throw new DiCompilationException('Cannot recompile already compiled container');
         }
 
         eval(substr($this->generateCode(), 31));
@@ -104,28 +103,28 @@ class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $pa
     {
         // It must have a return type, and the return type must only define a single class or interface
         if (!$method->hasReturnType()) {
-            throw new RuntimeException('Service definitions must have return types');
+            throw new DiCompilationException('Service definitions must have return types');
         }
 
         $returnType = $method->getReturnType();
         if (!$returnType instanceof ReflectionNamedType) {
-            throw new RuntimeException('Service definitions must define only a single class or interface returntype');
+            throw new DiCompilationException('Service definitions must define only a single class or interface returntype');
         }
         if ($returnType->isBuiltin()) {
-            throw new RuntimeException('Service definitions must return objects');
+            throw new DiCompilationException('Service definitions must return objects');
         }
     }
 
     private function validateServiceDefinitionParameters(ReflectionMethod $method): void
     {
         if ($method->getNumberOfParameters() > 1) {
-            throw new RuntimeException('Service definitions cannot take more than a name parameter');
+            throw new DiCompilationException('Service definitions cannot take more than a name parameter');
         }
         if ($method->getNumberOfParameters() === 1) {
             $parameter = $method->getParameters()[0];
 
             if (!is_a($parameter->getType(), ReflectionNamedType::class) || $parameter->getType()->getName() !== 'string') {
-                throw new \RuntimeException('Service definitions are only allowed a single named nullable string argument.');
+                throw new DiCompilationException('Service definitions are only allowed a single named nullable string argument.');
             }
         }
     }

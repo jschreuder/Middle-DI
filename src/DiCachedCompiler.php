@@ -27,7 +27,7 @@ final class DiCachedCompiler implements DiCompilerInterface
     public function compile(): static
     {
         if ($this->compiledClassExists()) {
-            throw new \RuntimeException('Cannot recompile already compiled container');
+            throw new DiCompilationException('Cannot recompile already compiled container');
         }
 
         if (!$this->validCache()) {
