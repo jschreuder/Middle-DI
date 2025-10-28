@@ -34,8 +34,8 @@ final class DiCachedCompiler implements DiCompilerInterface
             $this->writeCacheFile($this->compiler->generateCode());
         }
 
-        include $this->file->getPath();
-        
+        include_once $this->file->getPath();
+
         return $this;
     }
 
