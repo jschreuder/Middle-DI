@@ -1,6 +1,6 @@
 # Middle DI
 
-![Build](https://github.com/jschreuder/middle/actions/workflows/ci.yml/badge.svg)
+![Build](https://github.com/jschreuder/Middle-DI/actions/workflows/ci.yml/badge.svg)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=security_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
