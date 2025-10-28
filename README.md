@@ -1,8 +1,10 @@
 # Middle DI
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/?branch=master)
-[![Build Status](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/badges/build.png?b=master)](https://scrutinizer-ci.com/g/jschreuder/Middle-DI/?branch=master)
+![Build](https://github.com/jschreuder/middle/actions/workflows/ci.yml/badge.svg)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=security_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jschreuder_Middle-DI&metric=coverage)](https://sonarcloud.io/dashboard?id=jschreuder_Middle-DI)
 
 A modern PHP Dependency Injection Container that brings **IDE autocompletion, type safety, and zero-configuration** to dependency injection. Unlike traditional containers that use string-based service keys, Middle-DI generates strongly-typed methods during development, then caches optimized code for zero-overhead production performance.
 
@@ -24,7 +26,7 @@ Similar to Pimple's simplicity but with modern type safety and zero runtime over
 
 ## How It Works
 
-Middle-DI uses **compile-time code generation during development** to transform your simple container definition into an optimized singleton container. 
+Middle-DI uses **compile-time code generation during development** to transform your simple container definition into an optimized singleton container.
 
 **Simple Conventions:**
 - **Services**: `get*()` methods return singletons, accept optional `string $name` parameter only
@@ -40,7 +42,7 @@ class Container
         return new PDO($this->config('db.dsn'));
     }
 
-    public function getUserService(): UserService  
+    public function getUserService(): UserService
     {
         return new UserService($this->getDatabase());
     }
@@ -128,7 +130,7 @@ class Container
     {
         $dsn = match($name) {
             'readonly' => 'mysql:host=slave;dbname=app',
-            'analytics' => 'mysql:host=analytics;dbname=app',  
+            'analytics' => 'mysql:host=analytics;dbname=app',
             default => 'mysql:host=master;dbname=app'
         };
         return new PDO($dsn);
@@ -196,7 +198,7 @@ No YAML, XML, or array configuration. Just write PHP methods with clear return t
 ### 💡 **Full IDE Support**
 Complete autocompletion, type hints, and "Go to Definition" support. Refactoring tools work perfectly. No more guessing what `$container->get('service_name')` returns.
 
-### ⚡ **Zero Production Overhead**  
+### ⚡ **Zero Production Overhead**
 Development-time compilation generates cached PHP files. Production runs pure opcached code that compiles to native PHP speed with full opcache optimization.
 
 ### 🔒 **Type Safety**
