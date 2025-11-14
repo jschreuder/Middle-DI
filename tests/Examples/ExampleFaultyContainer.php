@@ -8,9 +8,11 @@ use stdClass;
 // Should error on having 2 parameters
 class ExampleFaultyContainer1
 {
-    public function getService(?string $name = 'the-second-param-is-not-allowed', array $settings = []): stdClass
-    {
-        $obj = new \stdClass();
+    public function getService(
+        ?string $name = "the-second-param-is-not-allowed",
+        array $settings = [],
+    ): stdClass {
+        $obj = new stdClass();
         return $obj;
     }
 }
@@ -18,9 +20,10 @@ class ExampleFaultyContainer1
 // Should error on lack of return-type
 class ExampleFaultyContainer2
 {
-    public function getService(string $name = 'without-returntype-is-not-allowed')
-    {
-        $obj = new \stdClass();
+    public function getService(
+        string $name = "without-returntype-is-not-allowed",
+    ) {
+        $obj = new stdClass();
         return $obj;
     }
 }
@@ -30,7 +33,7 @@ class ExampleFaultyContainer3
 {
     public function getService(array $config): stdClass
     {
-        $obj = new \stdClass();
+        $obj = new stdClass();
         return $obj;
     }
 }
@@ -38,9 +41,9 @@ class ExampleFaultyContainer3
 // Should error on intersection return type
 class ExampleFaultyContainer4
 {
-    public function getService(array $config): stdClass | ArrayObject
+    public function getService(array $config): stdClass|ArrayObject
     {
-        $obj = new \stdClass();
+        $obj = new stdClass();
         return $obj;
     }
 }
@@ -50,6 +53,6 @@ class ExampleFaultyContainer5
 {
     public function getService(array $config): string
     {
-        return 'disallowed';
+        return "disallowed";
     }
-} 
+}

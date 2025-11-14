@@ -8,7 +8,7 @@ use ReflectionNamedType;
 
 final class DiCompiler implements DiCompilerInterface
 {
-    const COMPILED_EXTENSION = '__Compiled';
+    private const string COMPILED_EXTENSION = "__Compiled";
 
     private string $parentDi;
 
@@ -30,7 +30,9 @@ final class DiCompiler implements DiCompilerInterface
     public function compile(): static
     {
         if ($this->compiledClassExists()) {
-            throw new DiCompilationException('Cannot recompile already compiled container');
+            throw new DiCompilationException(
+                "Cannot recompile already compiled container",
+            );
         }
 
         eval(substr($this->generateCode(), 31));
@@ -53,28 +55,35 @@ final class DiCompiler implements DiCompilerInterface
 
     private function generateHeader(ReflectionClass $parent)
     {
-        $code = '<?php declare(strict_types=1);
-';
+        $code = "<?php declare(strict_types=1);\n";
 
         if ($parent->getNamespaceName()) {
-            $code .= 'namespace ' . $parent->getNamespaceName() . ';
-
-use ' . $parent->getName() . ';
-';
+            $code .=
+                "namespace " .
+                $parent->getNamespaceName() .
+                ";\n\nuse " .
+                $parent->getName() .
+                ";\n";
         }
 
-        $code .= '
-class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $parent->getShortName() . '
+        $code .=
+            "
+class " .
+            $parent->getShortName() .
+            self::COMPILED_EXTENSION .
+            " extends " .
+            $parent->getShortName() .
+            "
 {
-    private array $__services = [];
+    private array \$__services = [];
 
-    private function __service(string $method, ?string $instanceName = null)
+    private function __service(string \$method, ?string \$instanceName = null)
     {
-        $suffix = is_null($instanceName) ? \'\' : \'.\' . $instanceName;
-        return $this->__services[$method . $suffix] ?? ($this->__services[$method . $suffix] = parent::{$method}($instanceName));
+        \$suffix = \$instanceName === null ? \"\" : \".\$instanceName\";
+        return \$this->__services[\$method . \$suffix] ?? (\$this->__services[\$method . \$suffix] = parent::{\$method}(\$instanceName));
     }
 
-';
+";
 
         return $code;
     }
@@ -82,8 +91,8 @@ class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $pa
     public function processMethod(ReflectionMethod $method): string
     {
         // Decide if the method needs to be overloaded
-        if (substr($method->getName(), 0, 3) !== 'get') {
-            return '';
+        if (substr($method->getName(), 0, 3) !== "get") {
+            return "";
         }
 
         // Run validations
@@ -91,47 +100,63 @@ class ' . $parent->getShortName() . self::COMPILED_EXTENSION . ' extends ' . $pa
         $this->validateServiceDefinitionParameters($method);
 
         // Generate method-overload code
-        return '
-    public function ' . $method->getName() . '(?string $instanceName = null): \\' . $method->getReturnType()->getName() . '
-    {
-        return $this->__service(\'' . $method->getName() . '\', $instanceName);
-    }
-';
+        return "\n    public function " .
+            $method->getName() .
+            "(?string \$instanceName = null): \\" .
+            $method->getReturnType()->getName() .
+            "\n    {\n        return \$this->__service(\"" .
+            $method->getName() .
+            "\", \$instanceName);\n    }\n";
     }
 
-    private function validateServiceDefinitionReturnType(ReflectionMethod $method): void
-    {
+    private function validateServiceDefinitionReturnType(
+        ReflectionMethod $method,
+    ): void {
         // It must have a return type, and the return type must only define a single class or interface
         if (!$method->hasReturnType()) {
-            throw new DiCompilationException('Service definitions must have return types');
+            throw new DiCompilationException(
+                "Service definitions must have return types",
+            );
         }
 
         $returnType = $method->getReturnType();
         if (!$returnType instanceof ReflectionNamedType) {
-            throw new DiCompilationException('Service definitions must define only a single class or interface returntype');
+            throw new DiCompilationException(
+                "Service definitions must define only a single class or interface returntype",
+            );
         }
         if ($returnType->isBuiltin()) {
-            throw new DiCompilationException('Service definitions must return objects');
+            throw new DiCompilationException(
+                "Service definitions must return objects",
+            );
         }
     }
 
-    private function validateServiceDefinitionParameters(ReflectionMethod $method): void
-    {
+    private function validateServiceDefinitionParameters(
+        ReflectionMethod $method,
+    ): void {
         if ($method->getNumberOfParameters() > 1) {
-            throw new DiCompilationException('Service definitions cannot take more than a name parameter');
+            throw new DiCompilationException(
+                "Service definitions cannot take more than a name parameter",
+            );
         }
         if ($method->getNumberOfParameters() === 1) {
             $parameter = $method->getParameters()[0];
 
-            if (!is_a($parameter->getType(), ReflectionNamedType::class) || $parameter->getType()->getName() !== 'string') {
-                throw new DiCompilationException('Service definitions are only allowed a single named nullable string argument.');
+            if (
+                !is_a($parameter->getType(), ReflectionNamedType::class) ||
+                $parameter->getType()->getName() !== "string"
+            ) {
+                throw new DiCompilationException(
+                    "Service definitions are only allowed a single named nullable string argument.",
+                );
             }
         }
     }
 
     private function generateFooter(): string
     {
-        return PHP_EOL . '}' . PHP_EOL;
+        return PHP_EOL . "}" . PHP_EOL;
     }
 
     public function newInstance(array ...$args): mixed

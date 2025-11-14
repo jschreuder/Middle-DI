@@ -8,7 +8,10 @@ class ExampleCachedContainer3 extends \stdClass
 
     private function __service(string $method, ?string $instanceName = null)
     {
-        $suffix = is_null($instanceName) ? '' : '.' . $instanceName;
-        return $this->__services[$method . $suffix] ?? ($this->__services[$method . $suffix] = parent::{$method}($instanceName));
+        $suffix = $instanceName === null ? "" : "." . $instanceName;
+        return $this->__services[$method . $suffix] ??
+            ($this->__services[$method . $suffix] = parent::{$method}(
+                $instanceName,
+            ));
     }
-} 
+}

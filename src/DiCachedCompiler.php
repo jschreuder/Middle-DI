@@ -11,11 +11,10 @@ final class DiCachedCompiler implements DiCompilerInterface
     public function __construct(
         private DiCompilerInterface $compiler,
         private SplFileObject $file,
-        private int $maxAge = 0
-    )
-    {
+        private int $maxAge = 0,
+    ) {
         if ($maxAge < 0) {
-            throw new OutOfRangeException('Max age must be greater then zero.');
+            throw new OutOfRangeException("Max age must be greater then zero.");
         }
     }
 
@@ -27,7 +26,9 @@ final class DiCachedCompiler implements DiCompilerInterface
     public function compile(): static
     {
         if ($this->compiledClassExists()) {
-            throw new DiCompilationException('Cannot recompile already compiled container');
+            throw new DiCompilationException(
+                "Cannot recompile already compiled container",
+            );
         }
 
         if (!$this->validCache()) {
@@ -66,7 +67,7 @@ final class DiCachedCompiler implements DiCompilerInterface
             return true;
         }
         // Otherwise return true/false based on if it is older then allowed
-        return (time() - $this->file->getMTime()) < $this->maxAge;
+        return time() - $this->file->getMTime() < $this->maxAge;
     }
 
     public function newInstance(array ...$args): mixed
