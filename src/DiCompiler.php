@@ -159,7 +159,7 @@ class " .
         return PHP_EOL . "}" . PHP_EOL;
     }
 
-    public function newInstance(array ...$args): mixed
+    public function newInstance(mixed ...$args): mixed
     {
         $reflectedClass = new ReflectionClass($this->getCompiledName());
         return $reflectedClass->newInstance(...$args);

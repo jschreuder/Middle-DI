@@ -84,9 +84,8 @@ test("it errors on faulty service definitions during compilation", function (
 
 test("it can instantiate container", function () {
     $this->compiler->compile();
-    expect($this->compiler->newInstance($this->config))->toBeInstanceOf(
-        ExampleContainer::class,
-    );
+    $instance = $this->compiler->newInstance($this->config);
+    expect($instance)->toBeInstanceOf(ExampleContainer::class);
 });
 
 test("it can instantiate container with no namespace", function () {
