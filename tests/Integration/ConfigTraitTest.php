@@ -24,7 +24,7 @@ class ArrayAccessConfig implements ArrayAccess
 
     public function offsetExists(mixed $offset): bool
     {
-        return isset($this->data[$offset]);
+        return \array_key_exists($offset, $this->data);
     }
 
     public function offsetGet(mixed $offset): mixed
@@ -176,4 +176,11 @@ test('ConfigTrait works with numeric keys in array', function () {
     expect($instance->config('0'))->toBe('first');
     expect($instance->config('1'))->toBe('second');
     expect($instance->config('2'))->toBe('third');
+});
+
+test('ConfigTrait returns null values from ArrayAccess config', function () {
+    $arrayAccess = new ArrayAccessConfig($this->config);
+    $instance = new ConfigTraitTestClass($arrayAccess);
+
+    expect($instance->config('null_value'))->toBeNull();
 });

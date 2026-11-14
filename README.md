@@ -107,6 +107,8 @@ class Container
 
 // Compile and use
 $container = (new DiCompiler(Container::class))->compile()->newInstance();
+// Constructor arguments can be of any type, not just arrays:
+// $container = $compiler->compile()->newInstance('a string', 42, $someObject);
 
 // Services: same instances (singletons)
 $db1 = $container->getDatabase();

@@ -70,7 +70,7 @@ final class DiCachedCompiler implements DiCompilerInterface
         return time() - $this->file->getMTime() < $this->maxAge;
     }
 
-    public function newInstance(array ...$args): mixed
+    public function newInstance(mixed ...$args): mixed
     {
         return $this->compiler->newInstance(...$args);
     }

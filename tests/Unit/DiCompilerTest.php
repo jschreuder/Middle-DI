@@ -148,3 +148,64 @@ test("instance will treat factories as factories", function () {
     $user2 = $instance->newUser();
     expect($user1)->not->toBe($user2);
 });
+
+test("it compiles inherited get methods from parent classes", function () {
+    $parentClass = "ParentWithService_" . uniqid();
+    $childClass = "ChildOfParent_" . uniqid();
+
+    eval(
+        "namespace Tests\\Examples; class {$parentClass} { " .
+            "public function getInheritedService(): \\stdClass { return new \\stdClass(); } " .
+            "}"
+    );
+    eval(
+        "namespace Tests\\Examples; class {$childClass} extends {$parentClass} {}"
+    );
+
+    $compiler = new DiCompiler("Tests\\Examples\\{$childClass}");
+    $compiler->compile();
+    $instance = $compiler->newInstance();
+
+    $s1 = $instance->getInheritedService();
+    $s2 = $instance->getInheritedService();
+    expect($s1)->toBeInstanceOf(\stdClass::class);
+    expect($s1)->toBe($s2);
+});
+
+test("it compiles service methods with self return type", function () {
+    $uniqueClass = "SelfReturn_" . uniqid();
+
+    eval(
+        "namespace Tests\\Examples; class {$uniqueClass} { " .
+            "public function getSelf(): self { return \$this; } " .
+            "}"
+    );
+
+    $compiler = new DiCompiler("Tests\\Examples\\{$uniqueClass}");
+    $compiler->compile();
+    $instance = $compiler->newInstance();
+
+    $s1 = $instance->getSelf();
+    $s2 = $instance->getSelf();
+    expect($s1)->toBe($instance);
+    expect($s1)->toBe($s2);
+});
+
+test("it compiles service methods with static return type", function () {
+    $uniqueClass = "StaticReturn_" . uniqid();
+
+    eval(
+        "namespace Tests\\Examples; class {$uniqueClass} { " .
+            "public function getStatic(): static { return \$this; } " .
+            "}"
+    );
+
+    $compiler = new DiCompiler("Tests\\Examples\\{$uniqueClass}");
+    $compiler->compile();
+    $instance = $compiler->newInstance();
+
+    $s1 = $instance->getStatic();
+    $s2 = $instance->getStatic();
+    expect($s1)->toBe($instance);
+    expect($s1)->toBe($s2);
+});

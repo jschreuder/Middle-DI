@@ -207,3 +207,58 @@ test("it can instantiate container", function () {
 
     expect($this->compiler->newInstance($configArray))->toBe($compiledExample);
 });
+
+test("it can instantiate container with non-array arguments", function () {
+    $compiledExample = new \stdClass();
+
+    $this->parentDiCompiler
+        ->shouldReceive("newInstance")
+        ->once()
+        ->with("a string", 42, null)
+        ->andReturn($compiledExample);
+
+    expect($this->compiler->newInstance("a string", 42, null))->toBe(
+        $compiledExample,
+    );
+});
+
+test("it delegates processMethod to the wrapped compiler", function () {
+    $method = new \ReflectionMethod(\ArrayObject::class, "__construct");
+    $expectedCode = "public function getService(): \stdClass {}";
+
+    $this->parentDiCompiler
+        ->shouldReceive("processMethod")
+        ->once()
+        ->with($method)
+        ->andReturn($expectedCode);
+
+    expect($this->compiler->processMethod($method))->toBe($expectedCode);
+});
+
+test("cache is expired when file age equals max age exactly", function () {
+    $preCompiledFile =
+        __DIR__ . "/../Examples/Cached/ExampleCachedContainer1.php";
+    $code = @file_get_contents($preCompiledFile) ?: $this->compiledCodeExample;
+
+    // File is exactly maxAge seconds old: time() - getMTime() === maxAge,
+    // and since the check is `< maxAge` (not `<=`), the cache is expired.
+    $this->file->shouldReceive("isFile")->once()->andReturn(true);
+    $this->file
+        ->shouldReceive("getMTime")
+        ->once()
+        ->andReturn(time() - $this->maxAge);
+    $this->file->shouldReceive("ftruncate")->once()->with(0);
+    $this->file->shouldReceive("fwrite")->once()->with($code);
+    $this->file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
+
+    $this->parentDiCompiler
+        ->shouldReceive("compiledClassExists")
+        ->once()
+        ->andReturn(false);
+    $this->parentDiCompiler
+        ->shouldReceive("generateCode")
+        ->once()
+        ->andReturn($code);
+
+    expect($this->compiler->compile())->toBe($this->compiler);
+});

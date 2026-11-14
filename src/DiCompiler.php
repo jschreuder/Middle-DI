@@ -99,11 +99,15 @@ class " .
         $this->validateServiceDefinitionReturnType($method);
         $this->validateServiceDefinitionParameters($method);
 
-        // Generate method-overload code
+        // Generate method-overload code; "static" must not be namespace-qualified
+        $returnType = $method->getReturnType()->getName();
+        $returnTypePrefix = $returnType === "static" ? "" : "\\";
+
         return "\n    public function " .
             $method->getName() .
-            "(?string \$instanceName = null): \\" .
-            $method->getReturnType()->getName() .
+            "(?string \$instanceName = null): " .
+            $returnTypePrefix .
+            $returnType .
             "\n    {\n        return \$this->__service(\"" .
             $method->getName() .
             "\", \$instanceName);\n    }\n";

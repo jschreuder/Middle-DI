@@ -68,3 +68,9 @@ test("newInstance can accept multiple array arguments", function () {
     expect($instance)->toBeInstanceOf(ExampleContainerWithArgs::class);
     expect($instance->constructorArgs)->toBe([$array1, $array2]);
 });
+
+test("newInstance can be called with no arguments", function () {
+    $instance = $this->compiler->newInstance();
+    expect($instance)->toBeInstanceOf(ExampleContainerWithArgs::class);
+    expect($instance->constructorArgs)->toBe([]);
+});
