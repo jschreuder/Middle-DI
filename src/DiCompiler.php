@@ -99,9 +99,9 @@ class " .
         $this->validateServiceDefinitionReturnType($method);
         $this->validateServiceDefinitionParameters($method);
 
-        // Generate method-overload code; "static" must not be namespace-qualified
+        // Generate method-overload code; self/parent/static must not be namespace-qualified
         $returnType = $method->getReturnType()->getName();
-        $returnTypePrefix = $returnType === "static" ? "" : "\\";
+        $returnTypePrefix = in_array($returnType, ["self", "parent", "static"], true) ? "" : "\\";
 
         return "\n    public function " .
             $method->getName() .

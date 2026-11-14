@@ -5,6 +5,10 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.3", "8.4", "8.5"]
 
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +18,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: ${{ matrix.php-version }}
           coverage: xdebug
 
       - name: Install dependencies
@@ -24,6 +28,7 @@ jobs:
         run: vendor/bin/pest --coverage --coverage-clover=coverage.xml
 
       - name: SonarCloud Scan
+        if: matrix.php-version == '8.5'
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
