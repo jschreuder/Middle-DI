@@ -226,6 +226,6 @@ This is how the `DiCachedCompiler` was implemented, which is currently the only 
 
 ## Requirements
 
-- PHP 8.3 or higher
+- PHP 8.5 or higher
 
 Perfect for projects wanting Pimple's simplicity with modern IDE support and optimal production performance.

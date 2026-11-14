@@ -21,7 +21,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": ">=8.3"
+        "php": ">=8.5"
     },
     "require-dev": {
         "pestphp/pest": "^2.0",
