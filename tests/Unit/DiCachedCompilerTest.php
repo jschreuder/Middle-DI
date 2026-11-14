@@ -31,7 +31,7 @@ beforeEach(function () use ($compiledCodeExample) {
         "php://memory",
     ])->makePartial();
     $this->file
-        ->shouldReceive("isFile", "ftruncate", "fwrite", "getPath")
+        ->shouldReceive("isFile", "ftruncate", "fwrite", "getPathname")
         ->byDefault();
 
     $this->compiler = new DiCachedCompiler(
@@ -68,7 +68,7 @@ test("it can compile without cache", function () {
     $this->file->shouldReceive("isFile")->once()->andReturn(false);
     $this->file->shouldReceive("ftruncate")->once()->with(0);
     $this->file->shouldReceive("fwrite")->once()->with($code);
-    $this->file->shouldReceive("getPath")->once()->andReturn($preCompiledFile);
+    $this->file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
 
     $this->parentDiCompiler
         ->shouldReceive("compiledClassExists")
@@ -100,7 +100,7 @@ test("it can compile with expired cache", function () {
         ->andReturn(time() - 3000);
     $this->file->shouldReceive("ftruncate")->once()->with(0);
     $this->file->shouldReceive("fwrite")->once()->with($code);
-    $this->file->shouldReceive("getPath")->once()->andReturn($preCompiledFile);
+    $this->file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
 
     $this->parentDiCompiler
         ->shouldReceive("compiledClassExists")
@@ -126,7 +126,7 @@ test("it can compile with cache", function () {
 
     $this->file->shouldReceive("isFile")->once()->andReturn(true);
     $this->file->shouldReceive("ftruncate")->never();
-    $this->file->shouldReceive("getPath")->once()->andReturn($preCompiledFile);
+    $this->file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
     $this->file
         ->shouldReceive("getMTime")
         ->once()
@@ -154,7 +154,7 @@ test("it can compile with unexpireable cache", function () {
     ])->makePartial();
     $file->shouldReceive("isFile")->once()->andReturn(true);
     $file->shouldReceive("ftruncate")->never();
-    $file->shouldReceive("getPath")->once()->andReturn($preCompiledFile);
+    $file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
 
     $compiler = new DiCachedCompiler($this->parentDiCompiler, $file, 0);
 
