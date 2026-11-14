@@ -31,7 +31,7 @@ beforeEach(function () use ($compiledCodeExample) {
         "php://memory",
     ])->makePartial();
     $this->file
-        ->shouldReceive("isFile", "ftruncate", "fwrite", "getPathname")
+        ->shouldReceive("isFile", "ftruncate", "fwrite", "getPathname", "getSize")
         ->byDefault();
 
     $this->compiler = new DiCachedCompiler(
@@ -94,6 +94,7 @@ test("it can compile with expired cache", function () {
     $code = @file_get_contents($preCompiledFile) ?: $this->compiledCodeExample;
 
     $this->file->shouldReceive("isFile")->once()->andReturn(true);
+    $this->file->shouldReceive("getSize")->once()->andReturn(100);
     $this->file
         ->shouldReceive("getMTime")
         ->once()
@@ -125,6 +126,7 @@ test("it can compile with cache", function () {
         __DIR__ . "/../Examples/Cached/ExampleCachedContainer3.php";
 
     $this->file->shouldReceive("isFile")->once()->andReturn(true);
+    $this->file->shouldReceive("getSize")->once()->andReturn(100);
     $this->file->shouldReceive("ftruncate")->never();
     $this->file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
     $this->file
@@ -153,6 +155,7 @@ test("it can compile with unexpireable cache", function () {
         $preCompiledFile,
     ])->makePartial();
     $file->shouldReceive("isFile")->once()->andReturn(true);
+    $file->shouldReceive("getSize")->once()->andReturn(100);
     $file->shouldReceive("ftruncate")->never();
     $file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
 
@@ -170,6 +173,36 @@ test("it can compile with unexpireable cache", function () {
         ->once()
         ->andReturn(true);
     expect($compiler->compiledClassExists())->toBeTrue();
+});
+
+test("empty cache file is treated as invalid even with maxAge 0", function () {
+    $preCompiledFile =
+        __DIR__ . "/../Examples/Cached/ExampleCachedContainer1.php";
+    $code = @file_get_contents($preCompiledFile) ?: $this->compiledCodeExample;
+
+    // SplFileObject in c+ mode creates an empty file eagerly; isFile() is true
+    // but getSize() is 0, so the cache must be considered invalid and rewritten.
+    $file = \Mockery::mock(SplFileObject::class, [
+        $preCompiledFile,
+    ])->makePartial();
+    $file->shouldReceive("isFile")->once()->andReturn(true);
+    $file->shouldReceive("getSize")->once()->andReturn(0);
+    $file->shouldReceive("ftruncate")->once()->with(0);
+    $file->shouldReceive("fwrite")->once()->with($code);
+    $file->shouldReceive("getPathname")->once()->andReturn($preCompiledFile);
+
+    $compiler = new DiCachedCompiler($this->parentDiCompiler, $file, 0);
+
+    $this->parentDiCompiler
+        ->shouldReceive("compiledClassExists")
+        ->once()
+        ->andReturn(false);
+    $this->parentDiCompiler
+        ->shouldReceive("generateCode")
+        ->once()
+        ->andReturn($code);
+
+    expect($compiler->compile())->toBe($compiler);
 });
 
 test("it cant compile twice", function () {
@@ -243,6 +276,7 @@ test("cache is expired when file age equals max age exactly", function () {
     // File is exactly maxAge seconds old: time() - getMTime() === maxAge,
     // and since the check is `< maxAge` (not `<=`), the cache is expired.
     $this->file->shouldReceive("isFile")->once()->andReturn(true);
+    $this->file->shouldReceive("getSize")->once()->andReturn(100);
     $this->file
         ->shouldReceive("getMTime")
         ->once()

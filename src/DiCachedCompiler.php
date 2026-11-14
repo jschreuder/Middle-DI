@@ -62,6 +62,10 @@ final class DiCachedCompiler implements DiCompilerInterface
         if (!$this->file->isFile()) {
             return false;
         }
+        // An empty file is not a valid cache (SplFileObject in c+ mode creates it eagerly)
+        if ($this->file->getSize() === 0) {
+            return false;
+        }
         // There is a file, when max-age is set to zero it will always be valid
         if ($this->maxAge === 0) {
             return true;
